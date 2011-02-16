@@ -1,0 +1,21 @@
+public static boolean selfTest()
+{
+//test 1
+boolean testOne = false;
+KThread test1 = new KThread(new Runnable() {
+	void run() {
+		Lib.print("Starting and attempting to join self.");
+		test1.join();
+		Lib.print("Ok, thread test1 is finished succesfully);
+		testOne = true;
+	}
+});
+test1.fork();
+
+//test2
+//test3
+//test3
+}
+
+//Kernel.selfTest()
+KThread.selfTest();

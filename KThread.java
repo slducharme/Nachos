@@ -189,7 +189,26 @@ public class KThread {
 	Machine.autoGrader().finishingCurrentThread();
 
 	Lib.assertTrue(toBeDestroyed == null);
+	
+	// More of my garbage ---------------------------------------------------
+	
+	if(jQueue.isEmpty() == false)
+	{
+		for(int i : jQueue.queue)
+		{
+			if(i.friendID == currentThread.id)
+				
+				jQueue.remove(i);
+				i.getThread().run();
+				break;
+		}
+		
+	}
+	
+	// So much garbage ------------------------------------------------------
+	
 	toBeDestroyed = currentThread;
+	
 
 
 	currentThread.status = statusFinished;
@@ -276,6 +295,22 @@ public class KThread {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 
 	Lib.assertTrue(this != currentThread);
+	// Beginning of my garbage -------------------------------------------------------------------
+	if(this.compareTo(currentThread) = 0 || status = statusFinished)
+	{
+		return;
+	}
+	else
+	{
+		Pair temp = new Pair(currentThread, this.id);
+		jQueue.add(temp);
+		Machine.interupt().disable();
+		currentThread.sleep();
+	}
+	// End of garabage ----------------------------------------------------------------------------
+	
+	
+	
 
     }
 
