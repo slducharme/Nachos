@@ -11,7 +11,7 @@ public class qQueue{
 	
 	public qQueue(){
 	
-		linked =  = neew LinkedList();
+		linked = new LinkedList(null);
 
 	}
 
@@ -44,5 +44,10 @@ public class qQueue{
 	
 		else return false;
 	}
+    
+    public  int size(){
+    
+        return linked.size();
+    
 
 }

@@ -194,9 +194,9 @@ public class KThread {
 	
 	if(jQueue.isEmpty() == false)
 	{
-		for(int i : jQueue.queue)
-		{
-			if(i.friendID == currentThread.id)
+		for(int i= 0; i < jQueue.size(); i++ ){
+
+                        if(i.friendID == currentThread.id)
 				
 				jQueue.remove(i);
 				i.getThread().run();
@@ -296,7 +296,7 @@ public class KThread {
 
 	Lib.assertTrue(this != currentThread);
 	// Beginning of my garbage -------------------------------------------------------------------
-	if(this.compareTo(currentThread) = 0 || status = statusFinished)
+	if(this.compareTo(currentThread) == 0 || status == statusFinished)
 	{
 		return;
 	}
@@ -475,6 +475,7 @@ public class KThread {
     /** Number of times the KThread constructor was called. */
     private static int numCreated = 0;
 
+    private static qQueue jQueue; /* internatally intialized to null */
     private static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
