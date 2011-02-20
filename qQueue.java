@@ -1,13 +1,12 @@
 package nachos.threads;
 
 import java.util.LinkedList;
-
-import nachos.machine.*;
+import java.util.ListIterator;
 
 public class qQueue{
 
-	protected LinkedList linked;
-	
+	protected LinkedList <Object>linked;
+	Lock queueLock;
 	
 	public qQueue(){
 	
@@ -16,38 +15,107 @@ public class qQueue{
 	}
 
 
-	public add(Kthread thread) {
-	
+	public void add(KThread thread) {
+
+        queueLock.acquire();
 	linked.add(thread);
-	
+	queueLock.release();
 	}
 	
-	public add(Pair shared){
-	
-		linked.add(shared);
-		
+	public void add(Pair shared){
+
+                queueLock.acquire();
+		linked.add((Pair)shared);
+		queueLock.release();
 	}
 	
-	// public add(AlarmObjs snooze) {}
+    public void add(alarmObjs snooze) {
+
+        queueLock.acquire();
+
+   if (this.isEmpty() != true) {                /* if linked isn't empty, need to add at correct position. */
+
+       ListIterator walk = linked.listIterator();
+    while(walk.hasNext()) {
+
+            alarmObjs current = (alarmObjs) walk.next();
+
+            if (current.compareTo(snooze)== 1) {
+
+                linked.add(walk.previousIndex(),snooze);
+
+                break;
+
+            }
+
+            else if ( current.compareTo(snooze)== 0) {
+
+                linked.add(walk.nextIndex(), snooze);
+                break;
+            }
+            else{
+
+                walk.next();
+
+            }
+        }
+    linked.add(walk.nextIndex(), snooze);       /* went through entire list, walk has no next element, meaning snooze will need to be woken after all other thread, add snooze to end of list. */
+    }
+ else {
+         linked.add(snooze); //List is empty, append object.
+     }
+        queueLock.release();
+}
+
+    public void remove(Object target) {
 	
-	public void remove(Object target) {
-	
-			linked.remove(target);
-			
+	queueLock.acquire();
+        linked.remove(target);
+	queueLock.release();
 	}
+    public void removeFirst() {
+
+	queueLock.acquire();
+        linked.removeFirst();
+	queueLock.release();
+}
 	
-	public boolean isEmpty() {
-	
-		if (linked.size() == 0)
-		
-			return true;
-	
-		else return false;
-	}
+    public Object get(int index){
     
-    public  int size(){
+        queueLock.acquire();
+        Object answer = linked.get(index);
+        queueLock.release();
+        return answer;
+}
+public boolean isEmpty() {
+
+    queueLock.acquire();
+    if (linked.size() == 0){
+
+        queueLock.release();
+	return true;
+    }
+          
+    else{
+         queueLock.release();
+         return false;
+    }
+}
     
-        return linked.size();
+    public int size(){
     
+         queueLock.acquire();
+         int size = linked.size();
+         queueLock.release();
+         return size;
+    }
+
+    public Object getFirst(){
+
+        queueLock.acquire();
+        Object answer = linked.getFirst();
+        queueLock.release();
+        return answer;
+    }
 
 }

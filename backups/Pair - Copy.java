@@ -5,10 +5,10 @@ public class Pair
 {
 
    protected int friendID;
-   protected KThread tired;
+   protected Kthread tired;
 
 
-    public  Pair(KThread thread, int id) {
+    public  Pair(Kthread thread, int id) {
     
     friendID = id;
     tired = thread;

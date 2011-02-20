@@ -1,5 +1,6 @@
 package nachos.threads;
 
+import java.util.Calendar;
 import nachos.machine.*;
 
 /**
@@ -7,6 +8,9 @@ import nachos.machine.*;
  * until a certain time.
  */
 public class Alarm {
+
+    protected static qQueue alarmQue;
+    private Calendar cal = Calendar.getInstance();
     /**
      * Allocate a new Alarm. Set the machine's timer interrupt handler to this
      * alarm's callback.
@@ -27,7 +31,21 @@ public class Alarm {
      * that should be run.
      */
     public void timerInterrupt() {
-	KThread.currentThread().yield();
+
+        boolean intStatus = Machine.interrupt().disable();
+
+       long currentTime = cal.getTimeInMillis();
+
+       while ( ((alarmObjs)alarmQue.getFirst()).timer <= currentTime){
+
+               ((alarmObjs)alarmQue.getFirst()).sleepy.ready();
+               alarmQue.removeFirst();
+
+       }
+
+        Machine.interrupt().restore(intStatus);
+
+        KThread.currentThread().yield();
     }
 
     /**
@@ -45,9 +63,17 @@ public class Alarm {
      * @see	nachos.machine.Timer#getTime()
      */
     public void waitUntil(long x) {
-	// for now, cheat just to get something working (busy waiting is bad)
-	long wakeTime = Machine.timer().getTime() + x;
-	while (wakeTime > Machine.timer().getTime())
-	    KThread.yield();
+	      
+        long wakeTime = (cal.getTimeInMillis() ) + x;
+        KThread current = KThread.currentThread();
+        alarmObjs snooze = new alarmObjs(current, wakeTime);
+
+        alarmQue.add(snooze);
+
+        KThread.sleep();
+
+
+
+
     }
 }

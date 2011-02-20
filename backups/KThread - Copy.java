@@ -194,25 +194,23 @@ public class KThread {
 	
 	if(jQueue.isEmpty() == false)
 	{
-        
 		for(int i= 0; i < jQueue.size(); i++ ){
 
-                      if ( ((Pair) jQueue.get(i)).friendID == currentThread.id) { 
-                      
-                       ((Pair)jQueue.get(i)).tired.ready();                       // Put the woken thread back onto the ready queue
-                        jQueue.remove(i);
-       
-                        break;
-                      }
-                      
-                 i++;
-                }
+                        if(i.friendID == currentThread.id)
+				
+				jQueue.remove(i);
+				i.getThread().run();
+				break;
+		}
 		
 	}
 	
 	// So much garbage ------------------------------------------------------
 	
 	toBeDestroyed = currentThread;
+	
+
+
 	currentThread.status = statusFinished;
 	
 	sleep();
@@ -464,7 +462,7 @@ public class KThread {
      * ready (on the ready queue but not running), running, or blocked (not
      * on the ready queue and not running).
      */
-    protected int status = statusNew;
+    private int status = statusNew;
     private String name = "(unnamed thread)";
     private Runnable target;
     private TCB tcb;
