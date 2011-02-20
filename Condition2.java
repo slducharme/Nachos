@@ -46,7 +46,6 @@ public class Condition2 {
 		Machine.interrupt().enable();
 		conditionLock.acquire();
 		
-		
     }
 
     /**
@@ -59,7 +58,6 @@ public class Condition2 {
 		if(sleepingQueue isEmpty() == false)
 		{
 			Machine.interrupt().disable();
-			readyQueue.add(this);
 			sleepingQueue.remove(this);
 			condition == true;
 			Machine.interrupt().enable();
