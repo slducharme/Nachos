@@ -462,7 +462,7 @@ public class KThread {
      * ready (on the ready queue but not running), running, or blocked (not
      * on the ready queue and not running).
      */
-    private int status = statusNew;
+    protected int status = statusNew;
     private String name = "(unnamed thread)";
     private Runnable target;
     private TCB tcb;
@@ -475,7 +475,7 @@ public class KThread {
     /** Number of times the KThread constructor was called. */
     private static int numCreated = 0;
 
-    private static ThreadQueue readyQueue = null;
+    protected static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;
     private static KThread idleThread = null;
