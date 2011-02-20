@@ -30,20 +30,38 @@ public class Condition2 {
      * current thread must hold the associated lock. The thread will
      * automatically reacquire the lock before <tt>sleep()</tt> returns.
      */
-    public void sleep() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
-
-	conditionLock.release();
-
-	conditionLock.acquire();
+    public void sleep() 
+	{
+		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+		Lib.assertTrue(currentThread.status != 4);	// Assure that thread status is not finished
+		Machine.interrupt().disable();
+		sleepingQueue.add(currentThread);
+		condition == false;
+		conditionLock.release();
+		while(condition == false)
+		{
+			currentThread.status == 3; // Status blocked
+		}
+		currentThread.status = 1;
+		Machine.interrupt().enable();
+		conditionLock.acquire();
+		
     }
 
     /**
      * Wake up at most one thread sleeping on this condition variable. The
      * current thread must hold the associated lock.
      */
-    public void wake() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+    public void wake() 
+	{
+		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+		if(sleepingQueue isEmpty() == false)
+		{
+			Machine.interrupt().disable();
+			sleepingQueue.remove(this);
+			condition == true;
+			Machine.interrupt().enable();
+		}
     }
 
     /**
@@ -51,8 +69,15 @@ public class Condition2 {
      * thread must hold the associated lock.
      */
     public void wakeAll() {
-	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+	
+		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+		while(sleepingQueue isEmpty() == false)
+		{
+			sleepingQueue.nextThread().wake();
+		}
     }
 
     private Lock conditionLock;
+	protected Boolean condition;
+	public qQueue sleepingQueue = new qQueue();
 }
