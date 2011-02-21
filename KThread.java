@@ -297,7 +297,7 @@ public class KThread {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 
 	
-	// Beginning of my garbage -------------------------------------------------------------------
+	// Beginning student code-------------
 	if(this.compareTo(currentThread) == 0 || status == statusFinished)
 	{
 		return;
@@ -309,12 +309,12 @@ public class KThread {
                 Machine.interrupt().disable();
                         sleep();
 	}
-	// End of garabage ----------------------------------------------------------------------------
+	// End of student code-------
 	
 	
 	
 
-    }
+}
 
     /**
      * Create the idle thread. Whenever there are no threads ready to be run,
@@ -452,10 +452,11 @@ public class KThread {
                         System.out.println("Inside Test Thread");
                         for(int x = 0; x < loop; x++) {
                                 System.out.println("Insides Test Thread loop" + x);
-                                
+                               
                         }
                         System.out.println("Leaving Test Thread");
-                        currentThread.yield();
+                          currentThread.yield(); // For our debugging, dont reliquinsh cpu until you've completed. Also tested where the cpu was yieled for every loopcycle
+                                                 // However for legibility TestThreads will retain the cpu until loop is complete. 
                     }
               }
         }
@@ -469,7 +470,9 @@ public class KThread {
 	
 	new KThread(new PingTest(1)).setName("forked thread").fork();
 	new PingTest(0).run();
-
+        Pair quickie = new Pair(currentThread, currentThread.id);
+        Lib.assertTrue( quickie.friendID != -1);
+        Lib.assertTrue( quickie.tired != null);  // Quick test to ensure objects of type pair can be created with a KThread and a id number.
   /* These are the tests for the join() method */
 
   //Test case 1. Threads cannot join themselves.
@@ -481,11 +484,11 @@ public class KThread {
                 System.out.println("Test case 1. I'm alive");
                 currentThread.join();       // Thread tries to join itself, should simply exit
                 System.out.println("TC1 I shoud be exiting normally"); // Printed to ensure thread exited
-                currentThread.finish();
+                finish();
 
 
         } } ).setName("joining thread").fork();
-         currentThread.yield();
+      
         //Test case 2. Two normal threads can be successfully joined.
        
         new KThread(new Runnable(){
@@ -495,12 +498,12 @@ public class KThread {
                   KThread testCase2 = new KThread (new TestThread(5)).setName("To be joined");
                   testCase2.fork();
                   testCase2.join();
-                  System.out.println("TC2 Should be exiting anytime after joined threads 5sec delay");
-                  currentThread.finish();
+                  System.out.println("TC2 Should be exiting anytime after joined threads 5sec delay"); // Shows both the thread waited till after testCase2 and that it was placed back on ready queue in finish()
+                  finish();
             }
         }).setName("test 2").fork();
 
-        currentThread.yield();
+        currentThread.yield(); // Called to give testCase2 the cpu before test3 begins. Does not ensure priority of wake.
             
 //        Test case 3. Thread will try to join a thread that is finished.
             
@@ -517,17 +520,25 @@ public class KThread {
                        currentThread.yield();
                    }
                    
-                   System.out.println(" TC3 Going to try and join a finished thread");
+                   System.out.println("TC3 Going to try and join a finished thread");
                    testCase3.join();
                    System.out.println("TC3 Should be exiting normally, should not join finished threads.");
-                   currentThread.finish();
+                   finish();
             }
         }).setName("test 3").fork();
 
-          currentThread.yield();
+        currentThread.yield();
 
+        new KThread( new Runnable() { public void run(){ if (jQueue.isEmpty()) { System.out.println(" All pairs removed from Jqueue"); }
 
-     /* Thread tries to join its self. A pass is considered the thread ending normally */
+        }
+
+        }).setName("Empty").fork();
+     /** Other scenarios ruled out. Thread being finished trying to join, impossible. Thread being blocked trying to join, impossible. Other states are fine.
+      * Sleeping thread is woken by finish of child thread, and returned to readyQueue. Normal threads are able to finish correctly, as well as threads that were
+      * at some point part of a pair. Noticed that the finish method, while successfully restoring sleeping partner threads, it places them at the back of the readyQueue, causing the
+      * end of test2 to not get CPU until selfTest thread has finished.
+      */
 
 }
 

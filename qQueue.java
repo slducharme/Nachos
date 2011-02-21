@@ -73,6 +73,12 @@ public class qQueue{
         linked.remove(target);
 	queueLock.release();
 	}
+    public void remove(int index) {
+
+	queueLock.acquire();
+        linked.remove(index);
+	queueLock.release();
+	}
     public void removeFirst() {
 
 	queueLock.acquire();
