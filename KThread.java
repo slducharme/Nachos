@@ -306,8 +306,8 @@ public class KThread {
 	{
 		Pair temp = new Pair(currentThread, this.id);
 		jQueue.add(temp);
-		Machine.interupt().disable();
-		currentThread.sleep();
+
+                        sleep();
 	}
 	// End of garabage ----------------------------------------------------------------------------
 	
@@ -442,6 +442,42 @@ public class KThread {
 	
 	new KThread(new PingTest(1)).setName("forked thread").fork();
 	new PingTest(0).run();
+     /* Thread tries to join its self. A pass is considered the thread ending normally */
+
+    //Pair tests
+
+    KThread pairTest = new KThread( new Runnable() {
+
+
+        public void run() {
+
+
+            KThread t1 = new KThread();
+            t1.setName("Pair Id supply thread");
+            System.out.println("Creating test Pair Object");
+            Pair testP = new Pair(KThread.currentThread(), t1.id);
+
+            if ( testP == null) {
+
+
+                System.out.println("No object was created");
+            }
+
+             else { System.out.println("A pair was created in this thread");
+
+
+        }
+
+   }
+
+});
+
+  // Lib.assertTrue(testOne);
+
+
+    // test2
+
+
     }
 
     private static final char dbgThread = 't';
@@ -477,7 +513,7 @@ public class KThread {
     /** Number of times the KThread constructor was called. */
     private static int numCreated = 0;
 
-    private static qQueue jQueue; /* internatally intialized to null */
+    private static qQueue jQueue = new qQueue(); /* internatally intialized to null */
     private static ThreadQueue readyQueue = null;
     private static KThread currentThread = null;
     private static KThread toBeDestroyed = null;

@@ -6,11 +6,11 @@ import java.util.ListIterator;
 public class qQueue{
 
 	protected LinkedList <Object>linked;
-	Lock queueLock;
+	Lock queueLock = new Lock();
 	
 	public qQueue(){
 	
-		linked = new LinkedList(null);
+		linked = null;
 
 	}
 
