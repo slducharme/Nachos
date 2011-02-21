@@ -76,8 +76,17 @@ public class Condition2 {
 			sleepingQueue.nextThread().wake();
 		}
     }
+	
+	public static void selfTest()
+	{
+		boolean testOne = false;
+		KThread testThread = new KThread();
+		
+		
+	
+	}
 
     private Lock conditionLock;
-	protected Boolean condition;
+	protected Boolean condition == true;
 	public qQueue sleepingQueue = new qQueue();
 }

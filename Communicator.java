@@ -10,10 +10,26 @@ import nachos.machine.*;
  * threads can be paired off at this point.
  */
 public class Communicator {
+
+	 private int MESG;
+	 private int speakerCount;
+	 private int listenerCount;	 
+	 private Lock commLock;
+	 private Condition condSpeak;
+	 private Condition condListen;
+	 private boolean inboxFull;
     /**
      * Allocate a new communicator.
      */
-    public Communicator() {
+	
+    public Communicator() 
+	{
+		inboxFull = false;
+		speakerCount = 0;
+		listenerCount = 0;
+		commLock = new Lock();
+		condSpeak = new Condition(commLock);
+		condListen = new Condition(commLock);
     }
 
     /**
@@ -26,7 +42,20 @@ public class Communicator {
      *
      * @param	word	the integer to transfer.
      */
-    public void speak(int word) {
+    public void speak(int word) 
+	{
+		speakerCount++;
+		commLock.acquire();
+		while(listenerCount <= 0 || inboxFull == true)
+		{
+			condSpeak.sleep();
+		}
+			
+		MESG = word;
+		inboxFull = true;
+		condListen.wake();
+		speakerCount--;	
+		commLock.release();
     }
 
     /**
@@ -35,7 +64,33 @@ public class Communicator {
      *
      * @return	the integer transferred.
      */    
-    public int listen() {
-	return 0;
+    public int listen() 
+	{
+		int temp;
+		listenerCount++;
+		commLock.acquire();
+		while(speakerCount <= 0 || inboxFull == false)
+		{
+			condListen.sleep();
+		}
+		if(inboxFull == false)
+		{
+			condSpeak.wake();
+			condListen.sleep();
+		}
+		else
+		{
+			temp = MESG;
+			inboxFull == false;
+			listenerCount--;
+			commLock.release();
+			return temp;
+		}
+		return 0;
     }
+	
+	public static void selfTest()
+	{
+		
+	}
 }
