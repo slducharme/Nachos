@@ -296,7 +296,7 @@ public class KThread {
     public void join() {
 	Lib.debug(dbgThread, "Joining to thread: " + toString());
 
-	Lib.assertTrue(this != currentThread);
+	
 	// Beginning of my garbage -------------------------------------------------------------------
 	if(this.compareTo(currentThread) == 0 || status == statusFinished)
 	{
@@ -306,7 +306,7 @@ public class KThread {
 	{
 		Pair temp = new Pair(currentThread, this.id);
 		jQueue.add(temp);
-
+                Machine.interrupt().disable();
                         sleep();
 	}
 	// End of garabage ----------------------------------------------------------------------------
@@ -433,6 +433,33 @@ public class KThread {
 
 	private int which;
     }
+/**
+ * Class Designed for debugging purposes only, used to ensure threads are processing something.
+ * Calls with a loop of 0 will assume the debugger would like a finished thread.
+ */
+    private static class TestThread implements Runnable {
+
+            int loop;
+                TestThread(int loop) {
+                        this.loop = loop;
+                }
+
+                public void run() {
+
+                    if(loop == 0){ return; }
+
+                    else {
+                        System.out.println("Inside Test Thread");
+                        for(int x = 0; x < loop; x++) {
+                                System.out.println("Insides Test Thread loop" + x);
+                                
+                        }
+                        System.out.println("Leaving Test Thread");
+                        currentThread.yield();
+                    }
+              }
+        }
+
 
     /**
      * Tests whether this module is working.
@@ -442,43 +469,67 @@ public class KThread {
 	
 	new KThread(new PingTest(1)).setName("forked thread").fork();
 	new PingTest(0).run();
+
+  /* These are the tests for the join() method */
+
+  //Test case 1. Threads cannot join themselves.
+         
+        new KThread(new Runnable(){
+
+            public void run(){
+                
+                System.out.println("Test case 1. I'm alive");
+                currentThread.join();       // Thread tries to join itself, should simply exit
+                System.out.println("TC1 I shoud be exiting normally"); // Printed to ensure thread exited
+                currentThread.finish();
+
+
+        } } ).setName("joining thread").fork();
+         currentThread.yield();
+        //Test case 2. Two normal threads can be successfully joined.
+       
+        new KThread(new Runnable(){
+               public void run(){
+
+                  System.out.println("Test case 2; Going to try and join a thread");
+                  KThread testCase2 = new KThread (new TestThread(5)).setName("To be joined");
+                  testCase2.fork();
+                  testCase2.join();
+                  System.out.println("TC2 Should be exiting anytime after joined threads 5sec delay");
+                  currentThread.finish();
+            }
+        }).setName("test 2").fork();
+
+        currentThread.yield();
+            
+//        Test case 3. Thread will try to join a thread that is finished.
+            
+               new KThread(new Runnable(){
+               public void run(){
+
+
+                   System.out.println("Test case 3");
+                   KThread testCase3 = new KThread (new TestThread(0)).setName("To be joined finished");
+                   testCase3.fork();
+
+                   while(testCase3.status != 4){   // Wait for testThread to be finished. Give up cpu until. 
+
+                       currentThread.yield();
+                   }
+                   
+                   System.out.println(" TC3 Going to try and join a finished thread");
+                   testCase3.join();
+                   System.out.println("TC3 Should be exiting normally, should not join finished threads.");
+                   currentThread.finish();
+            }
+        }).setName("test 3").fork();
+
+          currentThread.yield();
+
+
      /* Thread tries to join its self. A pass is considered the thread ending normally */
 
-    //Pair tests
-
-    KThread pairTest = new KThread( new Runnable() {
-
-
-        public void run() {
-
-
-            KThread t1 = new KThread();
-            t1.setName("Pair Id supply thread");
-            System.out.println("Creating test Pair Object");
-            Pair testP = new Pair(KThread.currentThread(), t1.id);
-
-            if ( testP == null) {
-
-
-                System.out.println("No object was created");
-            }
-
-             else { System.out.println("A pair was created in this thread");
-
-
-        }
-
-   }
-
-});
-
-  // Lib.assertTrue(testOne);
-
-
-    // test2
-
-
-    }
+}
 
     private static final char dbgThread = 't';
 

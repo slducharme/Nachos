@@ -10,7 +10,7 @@ public class qQueue{
 	
 	public qQueue(){
 	
-		linked = null;
+		linked = new LinkedList<Object>();
 
 	}
 
