@@ -20,8 +20,12 @@ public class Condition2 {
      *				lock whenever it uses <tt>sleep()</tt>,
      *				<tt>wake()</tt>, or <tt>wakeAll()</tt>.
      */
-    public Condition2(Lock conditionLock) {
-	this.conditionLock = conditionLock;
+    public Condition2(Lock conditionLock) 
+	{
+		this.conditionLock = conditionLock;
+		sleepingQueue = new qQueue();
+		currentThread = KThread.currentThread();
+		
     }
 
     /**
@@ -36,11 +40,11 @@ public class Condition2 {
 		Lib.assertTrue(currentThread.status != 4);	// Assure that thread status is not finished
 		Machine.interrupt().disable();
 		sleepingQueue.add(currentThread);
-		condition == false;
+		condition = false;
 		conditionLock.release();
-		while(condition == false)
+		while(!condition)
 		{
-			currentThread.status == 3; // Status blocked
+			currentThread.status = 3; // Status blocked
 		}
 		currentThread.status = 1;
 		Machine.interrupt().enable();
@@ -55,11 +59,11 @@ public class Condition2 {
     public void wake() 
 	{
 		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
-		if(sleepingQueue isEmpty() == false)
+		if(!sleepingQueue.isEmpty())
 		{
 			Machine.interrupt().disable();
 			sleepingQueue.remove(this);
-			condition == true;
+			condition = true;
 			Machine.interrupt().enable();
 		}
     }
@@ -71,9 +75,9 @@ public class Condition2 {
     public void wakeAll() {
 	
 		Lib.assertTrue(conditionLock.isHeldByCurrentThread());
-		while(sleepingQueue isEmpty() == false)
+		while(!sleepingQueue.isEmpty())
 		{
-			sleepingQueue.nextThread().wake();
+			wake();
 		}
     }
 	
@@ -87,6 +91,7 @@ public class Condition2 {
 	}
 
     private Lock conditionLock;
-	protected Boolean condition == true;
-	public qQueue sleepingQueue = new qQueue();
+	protected Boolean condition = true;
+	private static KThread currentThread = null;
+	private static qQueue sleepingQueue;
 }

@@ -15,8 +15,8 @@ public class Communicator {
 	 private int speakerCount;
 	 private int listenerCount;	 
 	 private Lock commLock;
-	 private Condition condSpeak;
-	 private Condition condListen;
+	 private Condition2 condSpeak;
+	 private Condition2 condListen;
 	 private boolean inboxFull;
     /**
      * Allocate a new communicator.
@@ -28,8 +28,8 @@ public class Communicator {
 		speakerCount = 0;
 		listenerCount = 0;
 		commLock = new Lock();
-		condSpeak = new Condition(commLock);
-		condListen = new Condition(commLock);
+		condSpeak = new Condition2(commLock);
+		condListen = new Condition2(commLock);
     }
 
     /**
@@ -46,7 +46,7 @@ public class Communicator {
 	{
 		speakerCount++;
 		commLock.acquire();
-		while(listenerCount <= 0 || inboxFull == true)
+		while(listenerCount <= 0 || inboxFull)
 		{
 			condSpeak.sleep();
 		}
@@ -69,11 +69,11 @@ public class Communicator {
 		int temp;
 		listenerCount++;
 		commLock.acquire();
-		while(speakerCount <= 0 || inboxFull == false)
+		while(speakerCount <= 0 || !inboxFull)
 		{
 			condListen.sleep();
 		}
-		if(inboxFull == false)
+		if(!inboxFull)
 		{
 			condSpeak.wake();
 			condListen.sleep();
@@ -81,7 +81,7 @@ public class Communicator {
 		else
 		{
 			temp = MESG;
-			inboxFull == false;
+			inboxFull = false;
 			listenerCount--;
 			commLock.release();
 			return temp;
