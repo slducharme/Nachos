@@ -60,8 +60,8 @@ public class Condition2 {
 			KThread workdamnyou = new KThread();
 			workdamnyou = sleepingQueue.removeFirst();
 			workdamnyou.ready();
-			//sleepingQueue.removeFirst().ready();
-			//thread.ready();
+			sleepingQueue.removeFirst().ready();
+			thread.ready();
 			Machine.interrupt().restore(intStatus);
 		}
     }
