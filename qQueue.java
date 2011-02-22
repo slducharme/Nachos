@@ -70,7 +70,7 @@ public class qQueue{
     public void remove(Object target) {
 	
 	queueLock.acquire();
-        linked.remove(target);
+      linked.remove(target);
 	queueLock.release();
 	}
     public void remove(int index) {
@@ -79,11 +79,12 @@ public class qQueue{
         linked.remove(index);
 	queueLock.release();
 	}
-    public void removeFirst() {
+    public Object removeFirst() {
 
 	queueLock.acquire();
-        linked.removeFirst();
+    Object answer = linked.removeFirst();
 	queueLock.release();
+	return answer;
 }
 	
     public Object get(int index){
