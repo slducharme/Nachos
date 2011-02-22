@@ -9,8 +9,7 @@ import nachos.machine.*;
  */
 public class Alarm {
 
-    protected static qQueue alarmQue;
-    private Calendar cal = Calendar.getInstance();
+    protected static qQueue alarmQue = new qQueue();
     /**
      * Allocate a new Alarm. Set the machine's timer interrupt handler to this
      * alarm's callback.
@@ -32,20 +31,17 @@ public class Alarm {
      */
     public void timerInterrupt() {
 
-        boolean intStatus = Machine.interrupt().disable();
+      boolean intStatus = Machine.interrupt().disable();
+      long currentTime = Machine.timer().getTime();
+       if (!alarmQue.isEmpty()){
+       
 
-       long currentTime = cal.getTimeInMillis();
-
-       while ( ((alarmObjs)alarmQue.getFirst()).timer <= currentTime){
-
-               ((alarmObjs)alarmQue.getFirst()).sleepy.ready();
-               alarmQue.removeFirst();
-
+       alarmQue.alarmTill(currentTime);
        }
-
+ 
         Machine.interrupt().restore(intStatus);
 
-        KThread.currentThread().yield();
+       
     }
 
     /**
@@ -63,17 +59,51 @@ public class Alarm {
      * @see	nachos.machine.Timer#getTime()
      */
     public void waitUntil(long x) {
-	      
-        long wakeTime = (cal.getTimeInMillis() ) + x;
+
+
+        long wakeTime = Machine.timer().getTime() + x;
         KThread current = KThread.currentThread();
+
+        Machine.interrupt().disable();
         alarmObjs snooze = new alarmObjs(current, wakeTime);
 
         alarmQue.add(snooze);
 
-        KThread.sleep();
-
-
-
+        KThread.currentThread().sleep();
 
     }
+
+    public static void selfTest() {
+
+    KThread test1 = new KThread(new TestNaps(10)).setName("DebugAlarm1");
+    KThread test2 = new KThread(new TestNaps(20)).setName("DebugAlarm2");
+    KThread test3 = new KThread(new TestNaps(234)).setName("DebugAlarm3");
+    KThread test4 = new KThread(new TestNaps(1120)).setName("DebugAlarm4");
+    test1.fork();
+    test2.fork();
+    test3.fork();
+    test4.fork();
+    System.out.println("What");
+
+  }
+
+    static class TestNaps implements Runnable {
+
+        private long napLength;
+        public long timeIwoke;
+        public TestNaps(long timeTowait){
+
+            napLength = timeTowait;
+
+        }
+       public void run(){
+
+            
+            ThreadedKernel.alarm.waitUntil(napLength);
+            timeIwoke = Machine.timer().getTime();
+            System.out.println("I" + KThread.currentThread().getName() + "woke up at" + timeIwoke );
+        }
+   }
+
 }
+
