@@ -15,7 +15,10 @@ public class alarmObjs implements Comparable {
         
         
     }
-    
+
+    public long getTimer(){ return timer;}
+    public KThread getThread(){return sleepy;}
+
     
     
     public int compareTo(Object otherAlarm){
@@ -32,11 +35,18 @@ public class alarmObjs implements Comparable {
             return 1;       // Timer is before the other object
         }
     
-        else   
-        
-            return -1;      // The other timer is larger than the current one
-    
-    
+        else { return -1; }      // The other timer is larger than the current one
+   
+    }
+
+    public static void selfTest(){
+
+        alarmObjs test = new alarmObjs(KThread.currentThread(), 1231231213 );
+        Lib.assertTrue(test.timer != 0);
+        Lib.assertTrue(test.sleepy != null); // Objects contain both the timme and the thread to be awoken.
+
+
+
     }
 
     

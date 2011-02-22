@@ -8,34 +8,45 @@ public class qQueue{
 	protected LinkedList <Object>linked;
 	Lock queueLock = new Lock();
 	
-	public qQueue(){
+public qQueue(){
 	
 		linked = new LinkedList<Object>();
 
 	}
 
 
-	public void add(KThread thread) {
+public void add(KThread thread) {
 
-        queueLock.acquire();
+        if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
 	linked.add(thread);
 	queueLock.release();
-	}
+}
 	
-	public void add(Pair shared){
+public void add(Pair shared){
 
-                queueLock.acquire();
+                if (!queueLock.isHeldByCurrentThread()) {
+                         queueLock.acquire();
+
+                }
 		linked.add((Pair)shared);
 		queueLock.release();
-	}
+}
 	
-    public void add(alarmObjs snooze) {
+public void add(alarmObjs snooze) {
 
-        queueLock.acquire();
+     if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
 
-   if (this.isEmpty() != true) {                /* if linked isn't empty, need to add at correct position. */
+    }
 
-       ListIterator walk = linked.listIterator();
+   if (!isEmpty()) {                /* if linked isn't empty, need to add at correct position. */
+
+    ListIterator walk = linked.listIterator();
     while(walk.hasNext()) {
 
             alarmObjs current = (alarmObjs) walk.next();
@@ -55,7 +66,8 @@ public class qQueue{
             }
             else{
 
-                walk.next();
+               if(walk.hasNext()){ walk.next();}
+               else{ break; }
 
             }
         }
@@ -64,38 +76,60 @@ public class qQueue{
  else {
          linked.add(snooze); //List is empty, append object.
      }
-        queueLock.release();
+        if (queueLock.isHeldByCurrentThread()) {
+            queueLock.release();
+        }
 }
 
-    public void remove(Object target) {
+public void remove(Object target) {
 	
-	queueLock.acquire();
+	if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
         linked.remove(target);
 	queueLock.release();
 	}
-    public void remove(int index) {
+public void remove(int index) {
 
-	queueLock.acquire();
+	if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
         linked.remove(index);
 	queueLock.release();
 	}
-    public void removeFirst() {
+public void removeFirst() {
 
-	queueLock.acquire();
+	if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
         linked.removeFirst();
 	queueLock.release();
 }
 	
-    public Object get(int index){
+public Object get(int index){
     
-        queueLock.acquire();
+        if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
         Object answer = linked.get(index);
         queueLock.release();
         return answer;
 }
 public boolean isEmpty() {
 
-    queueLock.acquire();
+    if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
     if (linked.size() == 0){
 
         queueLock.release();
@@ -108,20 +142,53 @@ public boolean isEmpty() {
     }
 }
     
-    public int size(){
+public int size(){
     
-         queueLock.acquire();
+    if (!queueLock.isHeldByCurrentThread())
+    {
+     queueLock.acquire();
+
+    }
          int size = linked.size();
          queueLock.release();
          return size;
     }
 
-    public Object getFirst(){
+public Object getFirst(){
 
-        queueLock.acquire();
+     if (!queueLock.isHeldByCurrentThread())
+     {
+
+      queueLock.acquire();
+
+     }
+
         Object answer = linked.getFirst();
         queueLock.release();
         return answer;
     }
+ public alarmObjs popAlarm(){
 
+     alarmObjs answer;
+     if (!queueLock.isHeldByCurrentThread() ){ queueLock.acquire(); }
+
+        answer = (alarmObjs) linked.removeFirst();
+        queueLock.release();
+        return answer;
+    }
+
+  public void alarmTill(long wakeCall){
+
+
+     if (!queueLock.isHeldByCurrentThread() ){ queueLock.acquire(); }
+                if(!isEmpty()){
+                ListIterator walk = linked.listIterator();
+     while(((alarmObjs)walk.next()).getTimer() <= wakeCall && walk.hasNext()){
+                    alarmObjs current = (alarmObjs) walk.next();
+                    current.sleepy.ready();
+                    if(walk.hasNext()){walk.next();}
+                    else{break;}
+        }
+      }
+    }
 }
