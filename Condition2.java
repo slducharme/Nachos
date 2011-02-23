@@ -42,8 +42,8 @@ public class Condition2 {
 		sleepingQueue.add(KThread.currentThread());		// Add the current thread to the sleeping queue
 		conditionLock.release();						// Release the lock
 		KThread.currentThread().sleep();				// Put the currentThread to sleep using KThread's built in sleep method
-		Machine.interrupt().restore(intStatus);			// Restore previous interrupts
 		conditionLock.acquire();						// Reacquire the lock
+		Machine.interrupt().restore(intStatus);			// Restore previous interrupts
 		
     }
 
@@ -84,77 +84,103 @@ public class Condition2 {
 	 */
 	public static void selfTest()
 	{
+		final Lock testLock = new Lock();
+		final Condition2 testCond = new Condition2(testLock);
 		// Test Case 1: Put a running thread to sleep 
-		KThread sleep0 = new KThread(new Cond2Tester(0, "Test 1.0"));
-		sleep0.fork();
-		
-		KThread sleep1 = new KThread(new Cond2Tester(0, "Test 1.1"));
+		KThread sleep1 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+				System.out.println("--------Starting Condition2 selft test -----------------");
+                System.out.println("Test Case 1: Taking a nap");
+                testCond.sleep();     
+                System.out.println("Test Case 1: Thread woke up!"); 
+				System.out.println("Test Case 1: Complete");
+				testLock.release();
+				
+        } } ).setName("Test 1");
 		sleep1.fork();
+		//KThread sleep0 = new KThread(new Runnable);
 		
-		KThread sleep2 = new KThread(new Cond2Tester(0, "Test 1.2"));
+		KThread sleep2 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 1.1: Taking a nap");
+                testCond.sleep();     
+                System.out.println("Test Case 1.1: Thread woke up!");
+				System.out.println("Test Case 1.1: Complete");
+				testLock.release();		
+				
+        } } ).setName("Test 1.1");
+		
 		sleep2.fork();
 		
+		KThread sleep3 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 1.2: Taking a nap");
+                testCond.sleep();     
+                System.out.println("Test Case 1.2: Thread woke up!"); 
+				System.out.println("Test Case 1.2: Complete");
+				testLock.release();
+        } } ).setName("Test 1.2");
+		sleep3.fork();
+		
 		// Test Case 2: Wake a sleeping thread
-		KThread wake1 = new KThread(new Cond2Tester(1, "Test 2"));
+		KThread wake1 =	new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 2: Waking a thread...");
+                testCond.wake();      
+				System.out.println("Test Case 2: Complete");
+				testLock.release();
+        } } ).setName("Test 2");
 		wake1.fork();
-		sleep0.join();	// Task 1 wakes the sleeping task 2
+		sleep1.join();
 		
 		// Test Case 3: Waking all threads on the sleepingQueue
-		KThread wakeAll = new KThread(new Cond2Tester(2, "Test 3"));
-		wakeAll.fork();
-		sleep1.join();
+		KThread wakeAll1 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 3: Waking everyone up...");
+                testCond.wakeAll();     
+                System.out.println("Test Case 3: Everyone's awake now!!"); 
+				System.out.println("Test Case 3: Complete");
+				testLock.release();
+        } } ).setName("Test 3");
+		wakeAll1.fork();
 		sleep2.join();
+		sleep3.join();
 		
 		// Test Case 4: Wake a thread when sleepingQueue is empty
-		KThread wake2 = new KThread(new Cond2Tester(1, "Test 4"));
+		KThread wake2 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 4: Waking someone who's not there...");
+                testCond.wake();      
+				System.out.println("Test Case 4: No one home to wake... ");
+				System.out.println("Test Case 4: Complete");
+				testLock.release();
+        } } ).setName("Test 4");
 		wake2.fork();
 		
 		// Test Case 5: Wake all when sleepingQueue is empty
-		KThread wakeAll2 = new KThread(new Cond2Tester(2, "Test 5"));
+		KThread wakeAll2 = new KThread(new Runnable(){
+
+            public void run(){
+                testLock.acquire();
+                System.out.println("Test Case 5: Waking an empty nest...");
+                testCond.wakeAll();     
+                System.out.println("Test Case 5: No one home to wake..."); 
+				System.out.println("Test Case 5: Complete");
+				testLock.release();
+        } } ).setName("Test 5");
 		wakeAll2.fork();
-		
-	
-	}
-	/**
-	 * A new runnable class that allows for a cleaner and more comprehensible organization to the
-	 * self tester.
-	 * 0: sleep, 1: wake, 2: wakeAll
-	 */
-	private static class Cond2Tester implements Runnable 
-	{
-		final Lock testLock = new Lock();
-		final Condition2 testCond = new Condition2(testLock);
-		int testCase;
-		String testName;
-		
-		// Constructor requires the type of test case 0,1 or 2 for sleep(), wake() or wakeAll() and the name of the Test Case
-		Cond2Tester(int testCase, String testName)
-		{
-			this.testCase = testCase;
-			this.testName = testName;
-		}
-		public void run()
-		{
-			testLock.acquire();
-			switch(testCase)	// Switch for test cases
-			{
-				case(0):
-					System.out.println(testName + " used sleep...It was very effective!");
-					testCond.sleep();
-					System.out.println("A wild "  + testName + " appeared (woke up)!");
-					break;
-				case(1):
-					System.out.println(testName + " is waking someone up...");
-					testCond.wake();
-					break;
-				case(2):
-					System.out.println(testName + " is being loud and waking everyone up...");
-					testCond.wakeAll();
-					break;
-			}
-			System.out.println(testName + " complete");
-			testLock.release();
-		}
 	
 	}
 
