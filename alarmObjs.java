@@ -43,7 +43,7 @@ public class alarmObjs implements Comparable {
 
         alarmObjs test = new alarmObjs(KThread.currentThread(), 1231231213 );
         Lib.assertTrue(test.timer != 0);
-        Lib.assertTrue(test.sleepy != null); // Objects contain both the timme and the thread to be awoken.
+        Lib.assertTrue(test.sleepy != null); // Objects contain both the time and the thread to be awoken.
 
 
 

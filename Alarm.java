@@ -33,14 +33,18 @@ public class Alarm {
 
       boolean intStatus = Machine.interrupt().disable();
       long currentTime = Machine.timer().getTime();
-       if (!alarmQue.isEmpty()){
+      if(!alarmQue.isEmpty()){
+          
+      while(alarmQue.peeking() != -49 && alarmQue.peeking() < currentTime){
        
+     
 
-       alarmQue.alarmTill(currentTime);
-       }
+           alarmObjs wakeCall =(alarmObjs) alarmQue.removeFirst();
+           wakeCall.sleepy.ready();
+        }
  
         Machine.interrupt().restore(intStatus);
-
+        }
        
     }
 
@@ -64,29 +68,42 @@ public class Alarm {
         long wakeTime = Machine.timer().getTime() + x;
         KThread current = KThread.currentThread();
 
-        Machine.interrupt().disable();
+        
         alarmObjs snooze = new alarmObjs(current, wakeTime);
 
         alarmQue.add(snooze);
-
-        KThread.currentThread().sleep();
+        Machine.interrupt().disable();
+        KThread.sleep();
 
     }
 
     public static void selfTest() {
 
-    KThread test1 = new KThread(new TestNaps(10)).setName("DebugAlarm1");
-    KThread test2 = new KThread(new TestNaps(20)).setName("DebugAlarm2");
-    KThread test3 = new KThread(new TestNaps(234)).setName("DebugAlarm3");
-    KThread test4 = new KThread(new TestNaps(1120)).setName("DebugAlarm4");
+    new KThread(new Runnable(){
+   
+    public void run(){
+    System.out.println("Alarm Test Cases");
+    KThread test1 = new KThread(new TestNaps(10)).setName("DebugAlarm1"); // Standard wait until, should wake on first check a.k.a 500 ticks.
     test1.fork();
+    
+    KThread test2 = new KThread(new TestNaps(700)).setName("DebugAlarm2"); // Standard wait until, longer, should be woken at 3 check, and back on the readyQueue to finish.
     test2.fork();
+    
+    KThread normal = new KThread(new KThread.TestThread(1)).setName("normal"); // Thread should run and finish before the sleeping, alarmed threads wake.
+    normal.fork();
+    KThread test3 = new KThread(new TestNaps(600)).setName("DebugAlarm3");
     test3.fork();
-    test4.fork();
-    System.out.println("What");
-
-  }
-
+    
+    KThread test4 = new KThread(new TestNaps(1500)).setName("DebugAlarm4");
+    test4.fork(); // Testing to ensure threads are being prioritized upon waking, threads 2 3 should wake at same time, 4 should wake later.
+    
+    
+    }
+      }).setName("Alarm Test Cases").fork();
+}
+/*
+ * Test classed built to allow for KThreads to call waitUntil based on a (long) time given. Based on PingTest. 
+ */
     static class TestNaps implements Runnable {
 
         private long napLength;
@@ -98,10 +115,10 @@ public class Alarm {
         }
        public void run(){
 
-            
+            System.out.println("I" + KThread.currentThread().getName() + " going to sleep at " + Machine.timer().getTime() );
             ThreadedKernel.alarm.waitUntil(napLength);
             timeIwoke = Machine.timer().getTime();
-            System.out.println("I" + KThread.currentThread().getName() + "woke up at" + timeIwoke );
+            System.out.println("I" + KThread.currentThread().getName() + " woke up at " + timeIwoke );
         }
    }
 

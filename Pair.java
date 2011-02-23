@@ -16,6 +16,3 @@ public class Pair
     }
 
 }
-
-
-//  Too tired to finish, btw you're gay (awe)

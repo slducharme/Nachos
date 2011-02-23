@@ -437,7 +437,7 @@ public class KThread {
  * Class Designed for debugging purposes only, used to ensure threads are processing something.
  * Calls with a loop of 0 will assume the debugger would like a finished thread.
  */
-    private static class TestThread implements Runnable {
+    public static class TestThread implements Runnable {
 
             int loop;
                 TestThread(int loop) {
@@ -476,11 +476,11 @@ public class KThread {
   /* These are the tests for the join() method */
 
   //Test case 1. Threads cannot join themselves.
-         
+
         new KThread(new Runnable(){
 
             public void run(){
-                
+
                 System.out.println("Test case 1. I'm alive");
                 currentThread.join();       // Thread tries to join itself, should simply exit
                 System.out.println("TC1 I shoud be exiting normally"); // Printed to ensure thread exited
@@ -488,9 +488,9 @@ public class KThread {
 
 
         } } ).setName("joining thread").fork();
-      
+
         //Test case 2. Two normal threads can be successfully joined.
-       
+
         new KThread(new Runnable(){
                public void run(){
 
@@ -504,9 +504,9 @@ public class KThread {
         }).setName("test 2").fork();
 
         currentThread.yield(); // Called to give testCase2 the cpu before test3 begins. Does not ensure priority of wake.
-            
+
 //        Test case 3. Thread will try to join a thread that is finished.
-            
+
                new KThread(new Runnable(){
                public void run(){
 
@@ -515,11 +515,11 @@ public class KThread {
                    KThread testCase3 = new KThread (new TestThread(0)).setName("To be joined finished");
                    testCase3.fork();
 
-                   while(testCase3.status != 4){   // Wait for testThread to be finished. Give up cpu until. 
+                   while(testCase3.status != 4){   // Wait for testThread to be finished. Give up cpu until.
 
                        currentThread.yield();
                    }
-                   
+
                    System.out.println("TC3 Going to try and join a finished thread");
                    testCase3.join();
                    System.out.println("TC3 Should be exiting normally, should not join finished threads.");

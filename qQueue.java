@@ -2,7 +2,16 @@ package nachos.threads;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
-
+/*
+ * qQueue is a class to store all desired objects required for phase one. The add methods are kept simple by simple overrides, so that the desired items
+ * can be added in their specific ways. Remove methods that are required to return, do so with a <Object> and need to be typecast where they are called.
+ * Objects placed onto a qQueue are stored in a linked list. The class has a lock object to ensure that only one thread can be altering an individual object of
+ * type qQueue. Example: A thread should be able to modify the join qQueue (jqueue) without waiting for the lock from a thread modifying a alarm qQueue. They should however have to
+ * wait on other thread modifying the same object, to ensure atomicity.
+ *
+ * Developed Jason Major. Shawna Durcharme for phase #1 nachos.
+ * 
+ */
 public class qQueue
 {
 
@@ -119,6 +128,7 @@ public class qQueue
 		queueLock.release();
 		return answer;
 	}
+ /* Return if the qQueue is empty(NO elements) */
 	public boolean isEmpty() 
 	{
 		if (!queueLock.isHeldByCurrentThread())
@@ -136,7 +146,7 @@ public class qQueue
 			 return false;
 		}
 	}
-		
+/* Returns the size of the qQueue */
 	public int size()
 	{
 		if (!queueLock.isHeldByCurrentThread())
@@ -147,7 +157,7 @@ public class qQueue
 		queueLock.release();
 		return size;
 	}
-
+/* Returns the first object ontop of the queue */
 	public Object getFirst()
 	{
 		if (!queueLock.isHeldByCurrentThread())
@@ -158,28 +168,55 @@ public class qQueue
 		queueLock.release();
 		return answer;
 	}
-	public alarmObjs popAlarm()
-	{
-		alarmObjs answer;
-		if (!queueLock.isHeldByCurrentThread() ){ queueLock.acquire(); }
-		answer = (alarmObjs) linked.removeFirst();
-		queueLock.release();
-		return answer;
-	}
+/* With objects of type alarmObjs it is easier to have this method in place than to constantly type cast. Allows the caller to see the alarm time of a object
+ * for comparison. Returns a -49 as an escape to prevent infinite loops inplace of 0 incase the calling threads sleep time is actually 0 as well
+ **/
+        public long peeking(){
 
-	public void alarmTill(long wakeCall)
-	{
-		if (!queueLock.isHeldByCurrentThread() ){ queueLock.acquire(); }
-		if(!isEmpty())
-		{
-			ListIterator walk = linked.listIterator();
-			while(((alarmObjs)walk.next()).getTimer() <= wakeCall && walk.hasNext())
-			{
-				alarmObjs current = (alarmObjs) walk.next();
-				current.sleepy.ready();
-				if(walk.hasNext()){walk.next();}
-				else{break;}
-			}
-		}
-	}
+            if(linked.isEmpty()){
+
+                return -49;
+
+            }
+            else{
+
+               return ( (alarmObjs) linked.getFirst() ).getTimer();
+
+            }
+        }
+  /**
+   * Each method in qQueue closely mimics linkedlist methods and therefore little testing is required. Most testing of this class
+   * is witnessed in it's utilization in other selfTest() methods. Important to test that alarmObjs are sorted however.
+   *
+   */
+        public static void selfTest() {
+            
+            boolean success = true;
+            KThread spartan = new KThread( new KThread.TestThread(1)).setName("Spartan Threads");
+            KThread spartan2 = new KThread( new KThread.TestThread(1)).setName("Spartan Threads");
+            KThread spartan3 = new KThread( new KThread.TestThread(1)).setName("Spartan Threads");
+            KThread spartan4 = new KThread( new KThread.TestThread(1)).setName("Spartan Threads");
+            alarmObjs ob1 = new alarmObjs(spartan, 100);
+            alarmObjs ob2 = new alarmObjs(spartan2, 150);
+            alarmObjs ob3 = new alarmObjs(spartan3, 50);
+            alarmObjs ob4 = new alarmObjs(spartan4, 160);
+            
+            
+            qQueue alarms = new qQueue();
+            alarms.add(ob1);
+            if( alarms.isEmpty()){ success = false; }
+            alarms.add(ob2);
+            alarms.add(ob3);
+            alarms.add(ob4);
+            for (int i = 0; i < (alarms.size()-1) ; i++){               // Ensures the list is processed
+                
+                if(((alarmObjs)alarms.get(i)).getTimer() > ((alarmObjs) alarms.get(i+1)).getTimer()){ //Ensures elements of a alarmQueue are being sucessfully prioritized.
+                    
+                    success = false;
+                }
+                
+            }
+            if(success){ System.out.println(" Test Objects in an Alarm queue were prioritized."); } //Outputs confirmation that qQueues of type alarmObjs are Prioritiezed.
+        }
+
 }
